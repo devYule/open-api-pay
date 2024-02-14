@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    password: sa
+    url: jdbc:h2:tcp://localhost/~/test
+    driver-class-name: org.h2.Driver
+    username: sa
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: on
+    properties:
+      hibernate:
+        format_sql: true
+
+api:
+  pay:
+    kakao:
+      cid: "TC0ONETIME"
+      secret-key: "DEV0ACCFBF114EDA9C83BAD136AEF11311D7DC4D"
+      header-key: "Authorization"
+      header-value: "SECRET_KEY DEV0ACCFBF114EDA9C83BAD136AEF11311D7DC4D"
