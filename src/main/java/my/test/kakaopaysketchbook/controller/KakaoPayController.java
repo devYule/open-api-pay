@@ -42,6 +42,7 @@ public class KakaoPayController {
     @GetMapping("/success/{id}")
     public PayApproveResponseDto readySuccess(@PathVariable Long id,
                                               @RequestParam("pg_token") String pgToken) {
+        log.debug("readySuccess pgToken = {}", pgToken);
         try{
             return kakaopayService.readySuccess(id, pgToken);
         }catch (JsonProcessingException e) {
