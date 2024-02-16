@@ -2,12 +2,14 @@ package my.test.kakaopaysketchbook.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import my.test.kakaopaysketchbook.model.*;
 import my.test.kakaopaysketchbook.properties.ApiPayProperty;
 import my.test.kakaopaysketchbook.properties.KakaoPayRequestUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 @RequiredArgsConstructor
@@ -17,7 +19,9 @@ public class KakaoPayService {
     private final ObjectMapper om;
     private final KakaoPayRequestUtils kakaoPayRequestUtils;
     private final ApiPayProperty payProperty;
+    private final EntityManager em;
 
+    @Transactional
     public PayReadyResponseDto getRedirectUrl(PayInfoDto payInfoDto) throws JsonProcessingException {
         // TODO Security 에서 필요 정보 가져오기
         // TODO DAO 접근시 @Transactional (JPA)
@@ -50,6 +54,8 @@ public class KakaoPayService {
                 .body(String.class);
         PayReadyResponseDto payReadyResponseDto = om.readValue(response, PayReadyResponseDto.class);
         String tid = payReadyResponseDto.getTid();
+        Member member = em.find(Member.class, 1);
+        member.setTid(tid);
         // TODO tid 를 DAO 를 통해 어딘가 저장해두자.
 
         return payReadyResponseDto;
@@ -59,7 +65,7 @@ public class KakaoPayService {
         // TODO Security 관련 작업
 
         // TODO 위에서 저장해둔 tid 를 DAO 에서부터 가져오자
-        String tid = "가져온tid";
+        String tid = em.find(Member.class, 1).getTid();
         String auth = "SECRET_KEY " + (payProperty.getSecretKey().trim()); // TODO 이 부분도 application.yaml 에 추가하자.
 
         PayApproveDto approveRequest = kakaoPayRequestUtils.getApproveRequest(tid, id, pgToken);

@@ -1,0 +1,1 @@
+insert into Member (id, uid) values(1, 'testUser')
