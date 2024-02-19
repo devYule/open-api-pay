@@ -6,21 +6,29 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import my.test.kakaopaysketchbook.model.*;
 import my.test.kakaopaysketchbook.properties.ApiPayProperty;
-import my.test.kakaopaysketchbook.properties.KakaoPayRequestUtils;
+import my.test.kakaopaysketchbook.requester.KakaoPayRequester;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+
 
 @RequiredArgsConstructor
 @Service
 public class KakaoPayService {
 
     private final ObjectMapper om;
-    private final KakaoPayRequestUtils kakaoPayRequestUtils;
+    private final KakaoPayRequester kakaoPayRequester;
     private final ApiPayProperty payProperty;
     private final EntityManager em;
 
+    /**
+     * 준비과정 -> tid 발급, persist, 리다이렉트 url 발급 (내가 제공한 redirect 에다가 pgToken 까지 붙혀서 리턴해줌)
+     * tid 는 persist, 리다이렉트 url 은 프론트로 전달 (프론트는 해당 url 로 다시 요청할것임.)
+     * 이 리다이렉트 url 은 approve (승인), fail (실패), cancel (취소) 3종류로 구분되어 제공됨.
+     * 실제 카카오측 요청은 KakaoPayRequester 에 코드 존재.
+     * 해당 서비스는 요청에 필요한 데이터 세팅 + 요청 위임 의 역할.
+     */
     @Transactional
     public PayReadyResponseDto getRedirectUrl(PayInfoDto payInfoDto) throws JsonProcessingException {
         // TODO Security 에서 필요 정보 가져오기
@@ -39,7 +47,7 @@ public class KakaoPayService {
         /*
         요청 body 세팅
          */
-        PayReadyDto payReadyDto = kakaoPayRequestUtils.getReadyRequest(id, payInfoDto);
+        PayReadyDto payReadyDto = kakaoPayRequester.getReadyRequest(id, payInfoDto);
 
         // 요청 보내기
         RestClient restClient = RestClient.builder()
@@ -61,6 +69,11 @@ public class KakaoPayService {
         return payReadyResponseDto;
     }
 
+    /**
+     * success 일 경우 요청되는 url
+     * id 로 해당 멤버의 tid 를 가져올 수 있음 (DB)
+     * pgToken 과 id 를 통해 카카오측에 결제정보를 전달, 승인처리를 해줌.
+     */
     public PayApproveResponseDto readySuccess(Long id, String pgToken) throws JsonProcessingException {
         // TODO Security 관련 작업
 
@@ -68,7 +81,7 @@ public class KakaoPayService {
         String tid = em.find(Member.class, 1).getTid();
         String auth = "SECRET_KEY " + (payProperty.getSecretKey().trim()); // TODO 이 부분도 application.yaml 에 추가하자.
 
-        PayApproveDto approveRequest = kakaoPayRequestUtils.getApproveRequest(tid, id, pgToken);
+        PayApproveDto approveRequest = kakaoPayRequester.getApproveRequest(tid, id, pgToken);
         String requestUrl = approveRequest.getRequestUrl();
 
         RestClient restClient = RestClient.builder()

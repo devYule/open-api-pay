@@ -1,7 +1,8 @@
-package my.test.kakaopaysketchbook.properties;
+package my.test.kakaopaysketchbook.requester;
 
 import lombok.RequiredArgsConstructor;
 import my.test.kakaopaysketchbook.model.*;
+import my.test.kakaopaysketchbook.properties.ApiPayProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 
@@ -10,7 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
  */
 @Component
 @RequiredArgsConstructor
-public class KakaoPayRequestUtils {
+public class KakaoPayRequester {
 
     private final ApiPayProperty payProperty;
 
@@ -20,7 +21,6 @@ public class KakaoPayRequestUtils {
          * 는 결제 승인 요청에서도 동일해야 한다.
          * 값은 자유지만, 주문번호와, 회원의 식별자값을 주는게 좋다.
          */
-        LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
         String cid = payProperty.getCid(); // cid = 가맹점 번호, 테스트시에는 TC0ONETIME 로 고정
         String memberId = "" + id; // partner_user_id = 가맹점의 주문번호, 최대 100자
@@ -41,17 +41,6 @@ public class KakaoPayRequestUtils {
                 taxFreeAmount.toString()
                 , successRedirectUrl, cancelRedirectUrl, failRedirectUrl);
 
-        params.add("cid", cid);
-        params.add("partner_user_id", memberId);
-        params.add("partner_order_id", orderId);
-        params.add("item_name", itemName);
-        params.add("quantity", quantity.toString());
-        params.add("total_amount", totalAmount);
-        params.add("tax_free_amount", taxFreeAmount.toString());
-        params.add("approval_url", successRedirectUrl);
-        params.add("cancel_url", cancelRedirectUrl);
-        params.add("fail_url", failRedirectUrl);
-
         return new PayReadyDto(requestUrl, payReadyBodyInfo);
     }
 
@@ -60,7 +49,6 @@ public class KakaoPayRequestUtils {
         String memberId = "" + id; // partner_user_id = 가맹점의 주문번호, 최대 100자
         String orderId = "order_id" + "id"; // partner_order_id = 가맹점의 회원 id, 최대 100자
 
-        LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         String cid = payProperty.getCid(); // cid = 가맹점 번호, 테스트시에는 TC0ONETIME 로 고정
         String tid = tidParam; // 결제 고유 번호, 20자
 
@@ -79,11 +67,6 @@ public class KakaoPayRequestUtils {
 
         PayApproveBodyInfo payApproveBodyInfo = new PayApproveBodyInfo(cid, tid, orderId, memberId, pg_token);
         String requestUrl = "https://open-api.kakaopay.com/online/v1/payment/approve";
-        params.add("cid", cid);
-        params.add("tid", tid);
-        params.add("partner_order_id", orderId);
-        params.add("partner_user_id", memberId);
-        params.add("pg_token", pgToken);
 
         return new PayApproveDto(requestUrl, payApproveBodyInfo);
 
