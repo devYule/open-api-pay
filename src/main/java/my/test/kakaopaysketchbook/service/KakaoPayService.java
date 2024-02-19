@@ -34,6 +34,8 @@ public class KakaoPayService {
         // TODO Security 에서 필요 정보 가져오기
         // TODO DAO 접근시 @Transactional (JPA)
 
+
+
         String name = "user_name"; // security 에서 유저이름을 가져왔다고 가정
         Long id = 1L; // security 에서 pk 값을 가져왔다고 가정
 
